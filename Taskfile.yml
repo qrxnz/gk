@@ -3,7 +3,7 @@ version: "3"
 tasks:
   build:
     cmds:
-      - go build -o qrack
+      - go build -o gk
     desc: "Build the Go project"
 
   test:
