@@ -8,6 +8,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const habitDayWidth = 10
+
 type Habit struct {
 	name string
 }
@@ -17,13 +19,22 @@ func NewHabit(name string) Habit {
 }
 
 func habitTrackerView(now time.Time, width int, focused bool, habits []Habit) string {
+	contentWidth := width - 6
+	if contentWidth < 0 {
+		contentWidth = 0
+	}
+	nameWidth := contentWidth - habitDayWidth*7
+	if nameWidth < 12 {
+		nameWidth = 12
+	}
 	start := startOfWeek(now)
-	days := make([]string, 0, 7)
+	days := make([]string, 0, 8)
+	days = append(days, lipgloss.NewStyle().Width(nameWidth).Render(""))
 
 	for i := 0; i < 7; i++ {
 		day := start.AddDate(0, 0, i)
 		label := fmt.Sprintf("%s %02d.%02d", weekdayLabel(day), day.Day(), day.Month())
-		style := lipgloss.NewStyle().Padding(0, 1)
+		style := lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center)
 		if sameDay(day, now) {
 			style = style.Foreground(lipgloss.Color("62")).Bold(true)
 		}
@@ -33,8 +44,8 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit) st
 	content := lipgloss.JoinVertical(
 		lipgloss.Left,
 		lipgloss.NewStyle().Bold(true).Render("Habit tracker"),
-		strings.Join(days, " "),
-		habitsView(habits),
+		lipgloss.JoinHorizontal(lipgloss.Top, days...),
+		habitsView(habits, nameWidth),
 	)
 
 	style := lipgloss.NewStyle().
@@ -51,14 +62,19 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit) st
 		Render(content)
 }
 
-func habitsView(habits []Habit) string {
+func habitsView(habits []Habit, nameWidth int) string {
 	if len(habits) == 0 {
 		return lipgloss.NewStyle().Faint(true).Render("No habits yet. Press n to add one.")
 	}
 
 	rows := make([]string, 0, len(habits))
 	for _, habit := range habits {
-		rows = append(rows, fmt.Sprintf("%s  %s", habit.name, strings.Repeat("□ ", 7)))
+		cells := make([]string, 0, 8)
+		cells = append(cells, lipgloss.NewStyle().Width(nameWidth).Render(habit.name))
+		for i := 0; i < 7; i++ {
+			cells = append(cells, lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center).Render("□"))
+		}
+		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, cells...))
 	}
 	return strings.Join(rows, "\n")
 }
