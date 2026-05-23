@@ -1,7 +1,6 @@
 package main
 
 import (
-	"reflect"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -95,17 +94,9 @@ func TestColumnMoveToNextRemovesTaskAndReturnsMoveMessage(t *testing.T) {
 	if len(col.list.Items()) != 0 {
 		t.Fatalf("len(items) = %d, want 0", len(col.list.Items()))
 	}
-	seq := reflect.ValueOf(msg)
-	if seq.Kind() != reflect.Slice || seq.Len() != 2 {
-		t.Fatalf("MoveToNext() message type = %T len = %d, want sequence of 2 commands", msg, seq.Len())
-	}
-	cmd, ok := seq.Index(1).Interface().(tea.Cmd)
+	move, ok := msg.(moveMsg)
 	if !ok {
-		t.Fatalf("second sequence item type = %T, want tea.Cmd", seq.Index(1).Interface())
-	}
-	move, ok := cmd().(moveMsg)
-	if !ok {
-		t.Fatalf("MoveToNext() second message type = %T, want moveMsg", cmd())
+		t.Fatalf("MoveToNext() message type = %T, want moveMsg", msg)
 	}
 	if move.Task.status != done {
 		t.Fatalf("moved task status = %v, want %v", move.Task.status, done)
