@@ -90,6 +90,10 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectNextHabit()
 				return m, nil
 			}
+		case key.Matches(msg, keys.Enter):
+			if m.habitFocused {
+				return m, m.toggleHabitCheck()
+			}
 		case key.Matches(msg, keys.Left):
 			if m.habitFocused {
 				m.selectPrevHabitDay()
@@ -172,6 +176,14 @@ func (m *Board) selectNextHabitDay() {
 	if m.habitDay > 6 {
 		m.habitDay = 0
 	}
+}
+
+func (m *Board) toggleHabitCheck() tea.Cmd {
+	if len(m.habits) == 0 {
+		return nil
+	}
+	m.habits[m.habitIndex].checked[m.habitDay] = !m.habits[m.habitIndex].checked[m.habitDay]
+	return m.saveHabits()
 }
 
 // Changing to pointer receiver to get back to this model after adding a new task via the form... Otherwise I would need to pass this model along to the form and it becomes highly coupled to the other models.

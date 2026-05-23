@@ -101,8 +101,9 @@ func TestStorageSaveReplacesExistingTasks(t *testing.T) {
 
 func TestStorageSaveAndLoadHabitsRoundTrip(t *testing.T) {
 	storage := newTestStorage(t)
+	checked := [7]bool{true, false, true, false, false, true, false}
 
-	if err := storage.SaveHabits([]Habit{NewHabit("Read"), NewHabit("Run")}); err != nil {
+	if err := storage.SaveHabits([]Habit{NewHabitWithChecks("Read", checked), NewHabit("Run")}); err != nil {
 		t.Fatalf("SaveHabits() error = %v", err)
 	}
 
@@ -115,6 +116,9 @@ func TestStorageSaveAndLoadHabitsRoundTrip(t *testing.T) {
 	}
 	if habits[0].name != "Read" || habits[1].name != "Run" {
 		t.Fatalf("habits = %#v, want Read and Run", habits)
+	}
+	if habits[0].checked != checked {
+		t.Fatalf("checked = %#v, want %#v", habits[0].checked, checked)
 	}
 }
 
