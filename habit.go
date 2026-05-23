@@ -18,7 +18,7 @@ func NewHabit(name string) Habit {
 	return Habit{name: name}
 }
 
-func habitTrackerView(now time.Time, width int, focused bool, habits []Habit) string {
+func habitTrackerView(now time.Time, width int, focused bool, habits []Habit, selectedHabit, selectedDay int) string {
 	contentWidth := width - 6
 	if contentWidth < 0 {
 		contentWidth = 0
@@ -35,7 +35,7 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit) st
 		day := start.AddDate(0, 0, i)
 		label := fmt.Sprintf("%s %02d.%02d", weekdayLabel(day), day.Day(), day.Month())
 		style := lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center)
-		if sameDay(day, now) {
+		if sameDay(day, now) || focused && i == selectedDay {
 			style = style.Foreground(lipgloss.Color("62")).Bold(true)
 		}
 		days = append(days, style.Render(label))
@@ -45,7 +45,7 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit) st
 		lipgloss.Left,
 		lipgloss.NewStyle().Bold(true).Render("Habit tracker"),
 		lipgloss.JoinHorizontal(lipgloss.Top, days...),
-		habitsView(habits, nameWidth),
+		habitsView(habits, nameWidth, focused, selectedHabit, selectedDay),
 	)
 
 	style := lipgloss.NewStyle().
@@ -62,17 +62,26 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit) st
 		Render(content)
 }
 
-func habitsView(habits []Habit, nameWidth int) string {
+func habitsView(habits []Habit, nameWidth int, focused bool, selectedHabit, selectedDay int) string {
 	if len(habits) == 0 {
 		return lipgloss.NewStyle().Faint(true).Render("No habits yet. Press n to add one.")
 	}
 
 	rows := make([]string, 0, len(habits))
-	for _, habit := range habits {
+	for i, habit := range habits {
+		selectedRow := focused && i == selectedHabit
+		nameStyle := lipgloss.NewStyle().Width(nameWidth)
+		if selectedRow {
+			nameStyle = nameStyle.Foreground(lipgloss.Color("62")).Bold(true)
+		}
 		cells := make([]string, 0, 8)
-		cells = append(cells, lipgloss.NewStyle().Width(nameWidth).Render(habit.name))
-		for i := 0; i < 7; i++ {
-			cells = append(cells, lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center).Render("□"))
+		cells = append(cells, nameStyle.Render(habit.name))
+		for day := 0; day < 7; day++ {
+			cellStyle := lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center)
+			if selectedRow && day == selectedDay {
+				cellStyle = cellStyle.Foreground(lipgloss.Color("62")).Bold(true)
+			}
+			cells = append(cells, cellStyle.Render("□"))
 		}
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, cells...))
 	}

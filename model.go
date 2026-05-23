@@ -14,6 +14,8 @@ type Board struct {
 	loaded       bool
 	focused      status
 	habitFocused bool
+	habitIndex   int
+	habitDay     int
 	habits       []Habit
 	cols         []column
 	storage      *Storage
@@ -52,6 +54,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Sequence(m.cols[m.focused].Set(msg.index, msg.CreateTask()), m.save())
 	case HabitForm:
 		m.habits = append(m.habits, msg.CreateHabit())
+		m.habitIndex = len(m.habits) - 1
 		return m, m.saveHabits()
 	case moveMsg:
 		return m, tea.Sequence(m.cols[m.focused.getNext()].Set(APPEND, msg.Task), m.save())
@@ -77,8 +80,19 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.habitFocused = false
 			m.cols[m.focused].Focus()
 			return m, nil
+		case key.Matches(msg, keys.Up):
+			if m.habitFocused {
+				m.selectPrevHabit()
+				return m, nil
+			}
+		case key.Matches(msg, keys.Down):
+			if m.habitFocused {
+				m.selectNextHabit()
+				return m, nil
+			}
 		case key.Matches(msg, keys.Left):
 			if m.habitFocused {
+				m.selectPrevHabitDay()
 				return m, nil
 			}
 			m.cols[m.focused].Blur()
@@ -86,6 +100,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cols[m.focused].Focus()
 		case key.Matches(msg, keys.Right):
 			if m.habitFocused {
+				m.selectNextHabitDay()
 				return m, nil
 			}
 			m.cols[m.focused].Blur()
@@ -123,6 +138,42 @@ func (m *Board) saveHabits() tea.Cmd {
 	}
 }
 
+func (m *Board) selectPrevHabit() {
+	if len(m.habits) == 0 {
+		m.habitIndex = 0
+		return
+	}
+	m.habitIndex--
+	if m.habitIndex < 0 {
+		m.habitIndex = len(m.habits) - 1
+	}
+}
+
+func (m *Board) selectNextHabit() {
+	if len(m.habits) == 0 {
+		m.habitIndex = 0
+		return
+	}
+	m.habitIndex++
+	if m.habitIndex >= len(m.habits) {
+		m.habitIndex = 0
+	}
+}
+
+func (m *Board) selectPrevHabitDay() {
+	m.habitDay--
+	if m.habitDay < 0 {
+		m.habitDay = 6
+	}
+}
+
+func (m *Board) selectNextHabitDay() {
+	m.habitDay++
+	if m.habitDay > 6 {
+		m.habitDay = 0
+	}
+}
+
 // Changing to pointer receiver to get back to this model after adding a new task via the form... Otherwise I would need to pass this model along to the form and it becomes highly coupled to the other models.
 func (m *Board) View() string {
 	if m.quitting {
@@ -140,5 +191,5 @@ func (m *Board) View() string {
 		m.cols[inProgress].View(),
 		m.cols[done].View(),
 	)
-	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(time.Now(), lipgloss.Width(board), m.habitFocused, m.habits), m.help.View(keys))
+	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(time.Now(), lipgloss.Width(board), m.habitFocused, m.habits, m.habitIndex, m.habitDay), m.help.View(keys))
 }
