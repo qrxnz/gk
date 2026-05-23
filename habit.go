@@ -30,7 +30,7 @@ func (h Habit) withChecks(checked [7]bool) Habit {
 	return h
 }
 
-func habitTrackerView(now time.Time, width int, focused bool, habits []Habit, selectedHabit, selectedDay int) string {
+func habitTrackerView(now time.Time, width, height int, focused bool, habits []Habit, selectedHabit, selectedDay int) string {
 	contentWidth := width - 6
 	if contentWidth < 0 {
 		contentWidth = 0
@@ -57,13 +57,14 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit, se
 		lipgloss.Left,
 		lipgloss.NewStyle().Bold(true).Render("Habit tracker"),
 		lipgloss.JoinHorizontal(lipgloss.Top, days...),
-		habitsView(now, habits, nameWidth, focused, selectedHabit, selectedDay),
+		habitsView(now, habits, nameWidth, visibleHabitRows(height), focused, selectedHabit, selectedDay),
 	)
 
 	style := lipgloss.NewStyle().
 		MarginTop(1).
 		Padding(1, 2).
 		Border(lipgloss.RoundedBorder()).
+		Height(height).
 		Width(width).
 		BorderForeground(lipgloss.Color("62"))
 	if !focused {
@@ -74,14 +75,16 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit, se
 		Render(content)
 }
 
-func habitsView(now time.Time, habits []Habit, nameWidth int, focused bool, selectedHabit, selectedDay int) string {
+func habitsView(now time.Time, habits []Habit, nameWidth, visibleRows int, focused bool, selectedHabit, selectedDay int) string {
 	if len(habits) == 0 {
 		return lipgloss.NewStyle().Faint(true).Render("No habits yet. Press n to add one.")
 	}
 
-	rows := make([]string, 0, len(habits))
-	for i, habit := range habits {
-		selectedRow := focused && i == selectedHabit
+	start, end := habitPageBounds(len(habits), visibleRows, selectedHabit)
+	rows := make([]string, 0, visibleRows+1)
+	for i, habit := range habits[start:end] {
+		index := start + i
+		selectedRow := focused && index == selectedHabit
 		nameStyle := lipgloss.NewStyle().Width(nameWidth)
 		if selectedRow {
 			nameStyle = nameStyle.Foreground(lipgloss.Color("62")).Bold(true)
@@ -101,7 +104,41 @@ func habitsView(now time.Time, habits []Habit, nameWidth int, focused bool, sele
 		}
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, cells...))
 	}
+	for len(rows) < visibleRows {
+		rows = append(rows, "")
+	}
+	if len(habits) > visibleRows {
+		page := selectedHabit/visibleRows + 1
+		pages := (len(habits) + visibleRows - 1) / visibleRows
+		rows = append(rows, lipgloss.NewStyle().Faint(true).Render(fmt.Sprintf("Page %d/%d", page, pages)))
+	}
 	return strings.Join(rows, "\n")
+}
+
+func visibleHabitRows(height int) int {
+	rows := height - 6
+	if rows < 1 {
+		return 1
+	}
+	return rows
+}
+
+func habitPageBounds(total, visibleRows, selected int) (int, int) {
+	if visibleRows < 1 {
+		visibleRows = 1
+	}
+	if selected < 0 {
+		selected = 0
+	}
+	if selected >= total {
+		selected = total - 1
+	}
+	start := selected / visibleRows * visibleRows
+	end := start + visibleRows
+	if end > total {
+		end = total
+	}
+	return start, end
 }
 
 func habitStreak(now time.Time, habit Habit) int {

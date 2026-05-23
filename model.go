@@ -12,6 +12,7 @@ import (
 type Board struct {
 	help         help.Model
 	loaded       bool
+	height       int
 	focused      status
 	habitFocused bool
 	habitIndex   int
@@ -41,6 +42,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		var cmds []tea.Cmd
 		m.help.Width = msg.Width - margin
+		m.height = msg.Height
 		for i := 0; i < len(m.cols); i++ {
 			var res tea.Model
 			res, cmd = m.cols[i].Update(msg)
@@ -236,5 +238,16 @@ func (m *Board) View() string {
 	if habitWeek.IsZero() {
 		habitWeek = startOfWeek(now)
 	}
-	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(habitWeek, lipgloss.Width(board), m.habitFocused, m.habits, m.habitIndex, m.habitDay), m.help.View(keys))
+	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(habitWeek, lipgloss.Width(board), m.habitHeight(), m.habitFocused, m.habits, m.habitIndex, m.habitDay), m.help.View(keys))
+}
+
+func (m *Board) habitHeight() int {
+	if m.height <= 0 {
+		return 8
+	}
+	height := m.height / 4
+	if height < 8 {
+		return 8
+	}
+	return height
 }
