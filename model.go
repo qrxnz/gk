@@ -123,6 +123,9 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Right):
 			if m.habitFocused {
 				if m.habitDay == 6 {
+					if !m.habitWeek.Before(startOfWeek(time.Now())) {
+						return m, nil
+					}
 					m.habitWeek = m.habitWeek.AddDate(0, 0, 7)
 					m.habitDay = 0
 					return m, m.loadHabitChecks()
