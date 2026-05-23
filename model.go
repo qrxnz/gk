@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -99,5 +101,5 @@ func (m *Board) View() string {
 		m.cols[inProgress].View(),
 		m.cols[done].View(),
 	)
-	return lipgloss.JoinVertical(lipgloss.Left, board, m.help.View(keys))
+	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(time.Now(), lipgloss.Width(board)), m.help.View(keys))
 }
