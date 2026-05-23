@@ -10,6 +10,10 @@ import (
 
 const habitDayWidth = 10
 
+const focusColor = "62"
+
+var selectedItemColor = lipgloss.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"}
+
 type Habit struct {
 	id      int64
 	name    string
@@ -48,7 +52,7 @@ func habitTrackerView(now time.Time, width, height int, focused bool, habits []H
 		label := fmt.Sprintf("%s %02d.%02d", weekdayLabel(day), day.Day(), day.Month())
 		style := lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center)
 		if focused && i == selectedDay {
-			style = style.Foreground(lipgloss.Color("62")).Bold(true)
+			style = style.Foreground(selectedItemColor).Bold(true)
 		}
 		days = append(days, style.Render(label))
 	}
@@ -66,7 +70,7 @@ func habitTrackerView(now time.Time, width, height int, focused bool, habits []H
 		Border(lipgloss.RoundedBorder()).
 		Height(height).
 		Width(width).
-		BorderForeground(lipgloss.Color("62"))
+		BorderForeground(lipgloss.Color(focusColor))
 	if !focused {
 		style = style.Border(lipgloss.HiddenBorder())
 	}
@@ -87,14 +91,14 @@ func habitsView(now time.Time, habits []Habit, nameWidth, visibleRows int, focus
 		selectedRow := focused && index == selectedHabit
 		nameStyle := lipgloss.NewStyle().Width(nameWidth)
 		if selectedRow {
-			nameStyle = nameStyle.Foreground(lipgloss.Color("62")).Bold(true)
+			nameStyle = nameStyle.Foreground(selectedItemColor).Bold(true)
 		}
 		cells := make([]string, 0, 8)
 		cells = append(cells, nameStyle.Render(fmt.Sprintf("%s  %dd", habit.name, habit.streak)))
 		for day := 0; day < 7; day++ {
 			cellStyle := lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center)
 			if selectedRow && day == selectedDay {
-				cellStyle = cellStyle.Foreground(lipgloss.Color("62")).Bold(true)
+				cellStyle = cellStyle.Foreground(selectedItemColor).Bold(true)
 			}
 			mark := "□"
 			if habit.checked[day] {
