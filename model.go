@@ -27,7 +27,8 @@ type Board struct {
 func NewBoard(storage *Storage) *Board {
 	help := help.New()
 	help.ShowAll = true
-	return &Board{help: help, focused: todo, storage: storage}
+	now := time.Now()
+	return &Board{help: help, focused: todo, habitWeek: startOfWeek(now), habitDay: weekdayIndex(now), storage: storage}
 }
 
 func (m *Board) Init() tea.Cmd {

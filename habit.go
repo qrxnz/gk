@@ -47,7 +47,7 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit, se
 		day := start.AddDate(0, 0, i)
 		label := fmt.Sprintf("%s %02d.%02d", weekdayLabel(day), day.Day(), day.Month())
 		style := lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center)
-		if sameDay(day, now) || focused && i == selectedDay {
+		if focused && i == selectedDay {
 			style = style.Foreground(lipgloss.Color("62")).Bold(true)
 		}
 		days = append(days, style.Render(label))
