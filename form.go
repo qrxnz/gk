@@ -80,3 +80,51 @@ func (f Form) View() string {
 		f.description.View(),
 		f.help.View(keys))
 }
+
+type HabitForm struct {
+	help help.Model
+	name textinput.Model
+}
+
+func newHabitForm() *HabitForm {
+	form := HabitForm{
+		help: help.New(),
+		name: textinput.New(),
+	}
+	form.name.Placeholder = "habit name"
+	form.name.Focus()
+	return &form
+}
+
+func (f HabitForm) CreateHabit() Habit {
+	return NewHabit(f.name.Value())
+}
+
+func (f HabitForm) Init() tea.Cmd {
+	return nil
+}
+
+func (f HabitForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, keys.Quit):
+			return f, tea.Quit
+		case key.Matches(msg, keys.Back):
+			return board.Update(nil)
+		case key.Matches(msg, keys.Enter):
+			return board.Update(f)
+		}
+	}
+	f.name, cmd = f.name.Update(msg)
+	return f, cmd
+}
+
+func (f HabitForm) View() string {
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		"Create a new habit",
+		f.name.View(),
+		f.help.View(keys))
+}

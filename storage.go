@@ -55,6 +55,17 @@ func (s *Storage) init() error {
 			position INTEGER NOT NULL
 		)
 	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(`
+		CREATE TABLE IF NOT EXISTS habits (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+			position INTEGER NOT NULL
+		)
+	`)
 	return err
 }
 
@@ -117,6 +128,58 @@ func (s *Storage) Save(cols []column) error {
 			if _, err := stmt.Exec(col.status, task.title, task.description, position); err != nil {
 				return err
 			}
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (s *Storage) LoadHabits() ([]Habit, error) {
+	rows, err := s.db.Query(`
+		SELECT name
+		FROM habits
+		ORDER BY position, id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	habits := []Habit{}
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		habits = append(habits, NewHabit(name))
+	}
+
+	return habits, rows.Err()
+}
+
+func (s *Storage) SaveHabits(habits []Habit) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(`DELETE FROM habits`); err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`
+		INSERT INTO habits (name, position)
+		VALUES (?, ?)
+	`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for position, habit := range habits {
+		if _, err := stmt.Exec(habit.name, position); err != nil {
+			return err
 		}
 	}
 

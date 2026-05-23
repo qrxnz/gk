@@ -99,6 +99,25 @@ func TestStorageSaveReplacesExistingTasks(t *testing.T) {
 	assertLoadedTask(t, tasks[done][0], done, "new", "new description")
 }
 
+func TestStorageSaveAndLoadHabitsRoundTrip(t *testing.T) {
+	storage := newTestStorage(t)
+
+	if err := storage.SaveHabits([]Habit{NewHabit("Read"), NewHabit("Run")}); err != nil {
+		t.Fatalf("SaveHabits() error = %v", err)
+	}
+
+	habits, err := storage.LoadHabits()
+	if err != nil {
+		t.Fatalf("LoadHabits() error = %v", err)
+	}
+	if len(habits) != 2 {
+		t.Fatalf("len(habits) = %d, want 2", len(habits))
+	}
+	if habits[0].name != "Read" || habits[1].name != "Run" {
+		t.Fatalf("habits = %#v, want Read and Run", habits)
+	}
+}
+
 func assertLoadedTask(t *testing.T, item interface{}, stat status, title, description string) {
 	t.Helper()
 

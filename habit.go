@@ -8,7 +8,15 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func habitTrackerView(now time.Time, width int, focused bool) string {
+type Habit struct {
+	name string
+}
+
+func NewHabit(name string) Habit {
+	return Habit{name: name}
+}
+
+func habitTrackerView(now time.Time, width int, focused bool, habits []Habit) string {
 	start := startOfWeek(now)
 	days := make([]string, 0, 7)
 
@@ -26,6 +34,7 @@ func habitTrackerView(now time.Time, width int, focused bool) string {
 		lipgloss.Left,
 		lipgloss.NewStyle().Bold(true).Render("Habit tracker"),
 		strings.Join(days, " "),
+		habitsView(habits),
 	)
 
 	style := lipgloss.NewStyle().
@@ -40,6 +49,18 @@ func habitTrackerView(now time.Time, width int, focused bool) string {
 
 	return style.
 		Render(content)
+}
+
+func habitsView(habits []Habit) string {
+	if len(habits) == 0 {
+		return lipgloss.NewStyle().Faint(true).Render("No habits yet. Press n to add one.")
+	}
+
+	rows := make([]string, 0, len(habits))
+	for _, habit := range habits {
+		rows = append(rows, fmt.Sprintf("%s  %s", habit.name, strings.Repeat("□ ", 7)))
+	}
+	return strings.Join(rows, "\n")
 }
 
 func startOfWeek(t time.Time) time.Time {

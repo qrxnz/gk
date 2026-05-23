@@ -14,6 +14,7 @@ type Board struct {
 	loaded       bool
 	focused      status
 	habitFocused bool
+	habits       []Habit
 	cols         []column
 	storage      *Storage
 	err          error
@@ -49,6 +50,9 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		return m, tea.Sequence(m.cols[m.focused].Set(msg.index, msg.CreateTask()), m.save())
+	case HabitForm:
+		m.habits = append(m.habits, msg.CreateHabit())
+		return m, m.saveHabits()
 	case moveMsg:
 		return m, tea.Sequence(m.cols[m.focused.getNext()].Set(APPEND, msg.Task), m.save())
 	case saveMsg:
@@ -60,18 +64,19 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
 			return m, tea.Quit
-		case key.Matches(msg, keys.Up):
+		case key.Matches(msg, keys.New):
 			if m.habitFocused {
-				m.habitFocused = false
-				m.cols[m.focused].Focus()
-				return m, nil
+				return newHabitForm().Update(nil)
 			}
-		case key.Matches(msg, keys.Down):
+		case key.Matches(msg, keys.Tab):
 			if !m.habitFocused {
 				m.cols[m.focused].Blur()
 				m.habitFocused = true
 				return m, nil
 			}
+			m.habitFocused = false
+			m.cols[m.focused].Focus()
+			return m, nil
 		case key.Matches(msg, keys.Left):
 			if m.habitFocused {
 				return m, nil
@@ -109,6 +114,15 @@ func (m *Board) save() tea.Cmd {
 	}
 }
 
+func (m *Board) saveHabits() tea.Cmd {
+	return func() tea.Msg {
+		if err := m.storage.SaveHabits(m.habits); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
 // Changing to pointer receiver to get back to this model after adding a new task via the form... Otherwise I would need to pass this model along to the form and it becomes highly coupled to the other models.
 func (m *Board) View() string {
 	if m.quitting {
@@ -126,5 +140,5 @@ func (m *Board) View() string {
 		m.cols[inProgress].View(),
 		m.cols[done].View(),
 	)
-	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(time.Now(), lipgloss.Width(board), m.habitFocused), m.help.View(keys))
+	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(time.Now(), lipgloss.Width(board), m.habitFocused, m.habits), m.help.View(keys))
 }

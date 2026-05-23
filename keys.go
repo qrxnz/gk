@@ -26,6 +26,7 @@ type keyMap struct {
 	Right  key.Binding
 	Left   key.Binding
 	Enter  key.Binding
+	Tab    key.Binding
 	Help   key.Binding
 	Quit   key.Binding
 	Back   key.Binding
@@ -63,6 +64,10 @@ var keys = keyMap{
 	Enter: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "enter"),
+	),
+	Tab: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "switch section"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),

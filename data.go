@@ -19,4 +19,10 @@ func (b *Board) initLists() {
 	b.cols[todo].list.SetItems(items[todo])
 	b.cols[inProgress].list.SetItems(items[inProgress])
 	b.cols[done].list.SetItems(items[done])
+
+	b.habits, err = b.storage.LoadHabits()
+	if err != nil {
+		b.err = err
+		return
+	}
 }
