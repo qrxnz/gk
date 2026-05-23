@@ -50,7 +50,7 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit, se
 		lipgloss.Left,
 		lipgloss.NewStyle().Bold(true).Render("Habit tracker"),
 		lipgloss.JoinHorizontal(lipgloss.Top, days...),
-		habitsView(habits, nameWidth, focused, selectedHabit, selectedDay),
+		habitsView(now, habits, nameWidth, focused, selectedHabit, selectedDay),
 	)
 
 	style := lipgloss.NewStyle().
@@ -67,7 +67,7 @@ func habitTrackerView(now time.Time, width int, focused bool, habits []Habit, se
 		Render(content)
 }
 
-func habitsView(habits []Habit, nameWidth int, focused bool, selectedHabit, selectedDay int) string {
+func habitsView(now time.Time, habits []Habit, nameWidth int, focused bool, selectedHabit, selectedDay int) string {
 	if len(habits) == 0 {
 		return lipgloss.NewStyle().Faint(true).Render("No habits yet. Press n to add one.")
 	}
@@ -80,7 +80,7 @@ func habitsView(habits []Habit, nameWidth int, focused bool, selectedHabit, sele
 			nameStyle = nameStyle.Foreground(lipgloss.Color("62")).Bold(true)
 		}
 		cells := make([]string, 0, 8)
-		cells = append(cells, nameStyle.Render(habit.name))
+		cells = append(cells, nameStyle.Render(fmt.Sprintf("%s  %dd", habit.name, habitStreak(now, habit))))
 		for day := 0; day < 7; day++ {
 			cellStyle := lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center)
 			if selectedRow && day == selectedDay {
@@ -95,6 +95,26 @@ func habitsView(habits []Habit, nameWidth int, focused bool, selectedHabit, sele
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, cells...))
 	}
 	return strings.Join(rows, "\n")
+}
+
+func habitStreak(now time.Time, habit Habit) int {
+	day := weekdayIndex(now)
+	streak := 0
+	for i := day; i >= 0; i-- {
+		if !habit.checked[i] {
+			break
+		}
+		streak++
+	}
+	return streak
+}
+
+func weekdayIndex(t time.Time) int {
+	weekday := int(t.Weekday())
+	if weekday == 0 {
+		return 6
+	}
+	return weekday - 1
 }
 
 func startOfWeek(t time.Time) time.Time {
