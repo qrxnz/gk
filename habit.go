@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func habitTrackerView(now time.Time, width int) string {
+func habitTrackerView(now time.Time, width int, focused bool) string {
 	start := startOfWeek(now)
 	days := make([]string, 0, 7)
 
@@ -28,12 +28,17 @@ func habitTrackerView(now time.Time, width int) string {
 		strings.Join(days, " "),
 	)
 
-	return lipgloss.NewStyle().
+	style := lipgloss.NewStyle().
 		MarginTop(1).
 		Padding(1, 2).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("62")).
 		Width(width).
+		BorderForeground(lipgloss.Color("62"))
+	if !focused {
+		style = style.Border(lipgloss.HiddenBorder())
+	}
+
+	return style.
 		Render(content)
 }
 

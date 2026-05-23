@@ -10,13 +10,14 @@ import (
 )
 
 type Board struct {
-	help     help.Model
-	loaded   bool
-	focused  status
-	cols     []column
-	storage  *Storage
-	err      error
-	quitting bool
+	help         help.Model
+	loaded       bool
+	focused      status
+	habitFocused bool
+	cols         []column
+	storage      *Storage
+	err          error
+	quitting     bool
 }
 
 func NewBoard(storage *Storage) *Board {
@@ -44,6 +45,9 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loaded = true
 		return m, tea.Batch(cmds...)
 	case Form:
+		if m.habitFocused {
+			return m, nil
+		}
 		return m, tea.Sequence(m.cols[m.focused].Set(msg.index, msg.CreateTask()), m.save())
 	case moveMsg:
 		return m, tea.Sequence(m.cols[m.focused.getNext()].Set(APPEND, msg.Task), m.save())
@@ -56,15 +60,36 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
 			return m, tea.Quit
+		case key.Matches(msg, keys.Up):
+			if m.habitFocused {
+				m.habitFocused = false
+				m.cols[m.focused].Focus()
+				return m, nil
+			}
+		case key.Matches(msg, keys.Down):
+			if !m.habitFocused {
+				m.cols[m.focused].Blur()
+				m.habitFocused = true
+				return m, nil
+			}
 		case key.Matches(msg, keys.Left):
+			if m.habitFocused {
+				return m, nil
+			}
 			m.cols[m.focused].Blur()
 			m.focused = m.focused.getPrev()
 			m.cols[m.focused].Focus()
 		case key.Matches(msg, keys.Right):
+			if m.habitFocused {
+				return m, nil
+			}
 			m.cols[m.focused].Blur()
 			m.focused = m.focused.getNext()
 			m.cols[m.focused].Focus()
 		}
+	}
+	if m.habitFocused {
+		return m, nil
 	}
 	res, cmd := m.cols[m.focused].Update(msg)
 	if _, ok := res.(column); ok {
@@ -101,5 +126,5 @@ func (m *Board) View() string {
 		m.cols[inProgress].View(),
 		m.cols[done].View(),
 	)
-	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(time.Now(), lipgloss.Width(board)), m.help.View(keys))
+	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(time.Now(), lipgloss.Width(board), m.habitFocused), m.help.View(keys))
 }
