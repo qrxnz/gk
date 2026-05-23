@@ -110,9 +110,21 @@ func habitsView(now time.Time, habits []Habit, nameWidth, visibleRows int, focus
 	if len(habits) > visibleRows {
 		page := selectedHabit/visibleRows + 1
 		pages := (len(habits) + visibleRows - 1) / visibleRows
-		rows = append(rows, lipgloss.NewStyle().Faint(true).Render(fmt.Sprintf("Page %d/%d", page, pages)))
+		rows = append(rows, pageDots(page, pages))
 	}
 	return strings.Join(rows, "\n")
+}
+
+func pageDots(page, pages int) string {
+	dots := make([]string, 0, pages)
+	for i := 1; i <= pages; i++ {
+		if i == page {
+			dots = append(dots, lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#847A85", Dark: "#979797"}).Render("•"))
+		} else {
+			dots = append(dots, lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}).Render("•"))
+		}
+	}
+	return lipgloss.NewStyle().PaddingLeft(2).Render(strings.Join(dots, ""))
 }
 
 func visibleHabitRows(height int) int {
