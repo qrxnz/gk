@@ -1,0 +1,26 @@
+# treefmt configuration file
+# See https://github.com/numtide/treefmt
+
+[formatter.go]
+command = "gofmt"
+options = ["-w"]
+includes = ["*.go"]
+
+[formatter.nix]
+command = "alejandra"
+includes = ["*.nix"]
+
+[formatter.dockerfile]
+command = "dockfmt"
+options = ["fmt", "--write"]
+includes = ["Dockerfile", "*.Dockerfile", "*.dockerfile"]
+
+[formatter.prettier]
+command = "prettier"
+options = ["--write"]
+includes = ["*.json", "*.jsonc", "*.yaml", "*.yml", "*.md"]
+
+[formatter.toml]
+command = "taplo"
+options = ["format"]
+includes = ["*.toml"]
