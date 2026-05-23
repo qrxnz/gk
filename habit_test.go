@@ -38,7 +38,7 @@ func TestHabitTrackerViewShowsCurrentWeek(t *testing.T) {
 	if !strings.Contains(view, "Read") {
 		t.Fatalf("habitTrackerView() missing habit name in %q", view)
 	}
-	if !strings.Contains(view, "2d") {
+	if !strings.Contains(view, "0d") {
 		t.Fatalf("habitTrackerView() missing streak in %q", view)
 	}
 }

@@ -11,8 +11,10 @@ import (
 const habitDayWidth = 10
 
 type Habit struct {
+	id      int64
 	name    string
 	checked [7]bool
+	streak  int
 }
 
 func NewHabit(name string) Habit {
@@ -21,6 +23,11 @@ func NewHabit(name string) Habit {
 
 func NewHabitWithChecks(name string, checked [7]bool) Habit {
 	return Habit{name: name, checked: checked}
+}
+
+func (h Habit) withChecks(checked [7]bool) Habit {
+	h.checked = checked
+	return h
 }
 
 func habitTrackerView(now time.Time, width int, focused bool, habits []Habit, selectedHabit, selectedDay int) string {
@@ -80,7 +87,7 @@ func habitsView(now time.Time, habits []Habit, nameWidth int, focused bool, sele
 			nameStyle = nameStyle.Foreground(lipgloss.Color("62")).Bold(true)
 		}
 		cells := make([]string, 0, 8)
-		cells = append(cells, nameStyle.Render(fmt.Sprintf("%s  %dd", habit.name, habitStreak(now, habit))))
+		cells = append(cells, nameStyle.Render(fmt.Sprintf("%s  %dd", habit.name, habit.streak)))
 		for day := 0; day < 7; day++ {
 			cellStyle := lipgloss.NewStyle().Width(habitDayWidth).Align(lipgloss.Center)
 			if selectedRow && day == selectedDay {

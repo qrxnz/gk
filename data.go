@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 func (b *Board) initLists() {
 	b.cols = []column{
 		newColumn(todo),
@@ -20,7 +22,9 @@ func (b *Board) initLists() {
 	b.cols[inProgress].list.SetItems(items[inProgress])
 	b.cols[done].list.SetItems(items[done])
 
-	b.habits, err = b.storage.LoadHabits()
+	b.habitWeek = startOfWeek(time.Now())
+	b.habitDay = weekdayIndex(time.Now())
+	b.habits, err = b.storage.LoadHabits(b.habitWeek)
 	if err != nil {
 		b.err = err
 		return

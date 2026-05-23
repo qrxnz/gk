@@ -16,6 +16,7 @@ type Board struct {
 	habitFocused bool
 	habitIndex   int
 	habitDay     int
+	habitWeek    time.Time
 	habits       []Habit
 	cols         []column
 	storage      *Storage
@@ -55,12 +56,21 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case HabitForm:
 		m.habits = append(m.habits, msg.CreateHabit())
 		m.habitIndex = len(m.habits) - 1
-		return m, m.saveHabits()
+		return m, tea.Sequence(m.saveHabits(), m.loadHabitChecks())
 	case moveMsg:
 		return m, tea.Sequence(m.cols[m.focused.getNext()].Set(APPEND, msg.Task), m.save())
 	case saveMsg:
 		return m, m.save()
 	case habitsSavedMsg:
+		return m, nil
+	case habitsLoadedMsg:
+		m.habits = msg.habits
+		if m.habitIndex >= len(m.habits) {
+			m.habitIndex = len(m.habits) - 1
+		}
+		if m.habitIndex < 0 {
+			m.habitIndex = 0
+		}
 		return m, nil
 	case error:
 		m.err = msg
@@ -98,7 +108,12 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, keys.Left):
 			if m.habitFocused {
-				m.selectPrevHabitDay()
+				if m.habitDay == 0 {
+					m.habitWeek = m.habitWeek.AddDate(0, 0, -7)
+					m.habitDay = 6
+					return m, m.loadHabitChecks()
+				}
+				m.habitDay--
 				return m, nil
 			}
 			m.cols[m.focused].Blur()
@@ -106,7 +121,12 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cols[m.focused].Focus()
 		case key.Matches(msg, keys.Right):
 			if m.habitFocused {
-				m.selectNextHabitDay()
+				if m.habitDay == 6 {
+					m.habitWeek = m.habitWeek.AddDate(0, 0, 7)
+					m.habitDay = 0
+					return m, m.loadHabitChecks()
+				}
+				m.habitDay++
 				return m, nil
 			}
 			m.cols[m.focused].Blur()
@@ -137,10 +157,20 @@ func (m *Board) save() tea.Cmd {
 
 func (m *Board) saveHabits() tea.Cmd {
 	return func() tea.Msg {
-		if err := m.storage.SaveHabits(m.habits); err != nil {
+		if err := m.storage.SaveHabits(m.habits, m.habitWeek); err != nil {
 			return err
 		}
 		return nil
+	}
+}
+
+func (m *Board) loadHabitChecks() tea.Cmd {
+	return func() tea.Msg {
+		habits, err := m.storage.LoadHabits(m.habitWeek)
+		if err != nil {
+			return err
+		}
+		return habitsLoadedMsg{habits: habits}
 	}
 }
 
@@ -166,29 +196,19 @@ func (m *Board) selectNextHabit() {
 	}
 }
 
-func (m *Board) selectPrevHabitDay() {
-	m.habitDay--
-	if m.habitDay < 0 {
-		m.habitDay = 6
-	}
-}
-
-func (m *Board) selectNextHabitDay() {
-	m.habitDay++
-	if m.habitDay > 6 {
-		m.habitDay = 0
-	}
-}
-
 func (m *Board) toggleHabitCheck() tea.Cmd {
 	if len(m.habits) == 0 {
 		return nil
 	}
 	m.habits[m.habitIndex].checked[m.habitDay] = !m.habits[m.habitIndex].checked[m.habitDay]
-	return tea.Sequence(m.saveHabits(), func() tea.Msg { return habitsSavedMsg{} })
+	return tea.Sequence(m.saveHabits(), m.loadHabitChecks())
 }
 
 type habitsSavedMsg struct{}
+
+type habitsLoadedMsg struct {
+	habits []Habit
+}
 
 // Changing to pointer receiver to get back to this model after adding a new task via the form... Otherwise I would need to pass this model along to the form and it becomes highly coupled to the other models.
 func (m *Board) View() string {
@@ -207,5 +227,10 @@ func (m *Board) View() string {
 		m.cols[inProgress].View(),
 		m.cols[done].View(),
 	)
-	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(time.Now(), lipgloss.Width(board), m.habitFocused, m.habits, m.habitIndex, m.habitDay), m.help.View(keys))
+	now := time.Now()
+	habitWeek := m.habitWeek
+	if habitWeek.IsZero() {
+		habitWeek = startOfWeek(now)
+	}
+	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(habitWeek, lipgloss.Width(board), m.habitFocused, m.habits, m.habitIndex, m.habitDay), m.help.View(keys))
 }

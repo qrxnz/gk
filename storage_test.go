@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"testing"
+	"time"
 
 	_ "github.com/tursodatabase/go-libsql"
 )
@@ -102,12 +103,13 @@ func TestStorageSaveReplacesExistingTasks(t *testing.T) {
 func TestStorageSaveAndLoadHabitsRoundTrip(t *testing.T) {
 	storage := newTestStorage(t)
 	checked := [7]bool{true, false, true, false, false, true, false}
+	week := time.Date(2026, 5, 18, 12, 0, 0, 0, time.UTC)
 
-	if err := storage.SaveHabits([]Habit{NewHabitWithChecks("Read", checked), NewHabit("Run")}); err != nil {
+	if err := storage.SaveHabits([]Habit{NewHabitWithChecks("Read", checked), NewHabit("Run")}, week); err != nil {
 		t.Fatalf("SaveHabits() error = %v", err)
 	}
 
-	habits, err := storage.LoadHabits()
+	habits, err := storage.LoadHabits(week)
 	if err != nil {
 		t.Fatalf("LoadHabits() error = %v", err)
 	}
@@ -119,6 +121,31 @@ func TestStorageSaveAndLoadHabitsRoundTrip(t *testing.T) {
 	}
 	if habits[0].checked != checked {
 		t.Fatalf("checked = %#v, want %#v", habits[0].checked, checked)
+	}
+}
+
+func TestStorageHabitStreakUsesStableHabitIDAcrossWeeks(t *testing.T) {
+	storage := newTestStorage(t)
+	week := time.Date(2026, 5, 18, 12, 0, 0, 0, time.UTC)
+	prevWeek := week.AddDate(0, 0, -7)
+	checked := [7]bool{true, true, true, true, true, true, true}
+
+	if err := storage.SaveHabits([]Habit{NewHabitWithChecks("Read", checked)}, prevWeek); err != nil {
+		t.Fatalf("SaveHabits(prevWeek) error = %v", err)
+	}
+	habits, err := storage.LoadHabits(prevWeek)
+	if err != nil {
+		t.Fatalf("LoadHabits(prevWeek) error = %v", err)
+	}
+	if err := storage.SaveHabits([]Habit{habits[0].withChecks(checked)}, week); err != nil {
+		t.Fatalf("SaveHabits(week) error = %v", err)
+	}
+	habits, err = storage.LoadHabitsWithStreakDate(week, time.Date(2026, 5, 20, 12, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatalf("LoadHabits(week) error = %v", err)
+	}
+	if habits[0].streak != 10 {
+		t.Fatalf("streak = %d, want 10", habits[0].streak)
 	}
 }
 
