@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -34,7 +35,18 @@ const (
 )
 
 func main() {
-	f, err := tea.LogToFile("debug.log", "debug")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	appDir := filepath.Join(homeDir, ".gk")
+	if err := os.MkdirAll(appDir, 0755); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	f, err := tea.LogToFile(filepath.Join(appDir, "debug.log"), "debug")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
