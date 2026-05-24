@@ -29,4 +29,5 @@ func (b *Board) initLists() {
 		b.err = err
 		return
 	}
+	b.habitToday = b.habits
 }

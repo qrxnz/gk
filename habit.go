@@ -34,7 +34,7 @@ func (h Habit) withChecks(checked [7]bool) Habit {
 	return h
 }
 
-func habitTrackerView(now time.Time, width, height int, focused bool, habits []Habit, selectedHabit, selectedDay int) string {
+func habitTrackerView(now time.Time, width, height int, focused bool, habits []Habit, selectedHabit, selectedDay, remainingToday int) string {
 	contentWidth := width - 6
 	if contentWidth < 0 {
 		contentWidth = 0
@@ -59,7 +59,7 @@ func habitTrackerView(now time.Time, width, height int, focused bool, habits []H
 
 	content := lipgloss.JoinVertical(
 		lipgloss.Left,
-		lipgloss.NewStyle().Bold(true).Render("Habit tracker"),
+		habitTitle(remainingToday),
 		lipgloss.JoinHorizontal(lipgloss.Top, days...),
 		habitsView(now, habits, nameWidth, visibleHabitRows(height), focused, selectedHabit, selectedDay),
 	)
@@ -77,6 +77,20 @@ func habitTrackerView(now time.Time, width, height int, focused bool, habits []H
 
 	return style.
 		Render(content)
+}
+
+func habitTitle(remaining int) string {
+	title := lipgloss.NewStyle().
+		Background(lipgloss.Color(focusColor)).
+		Foreground(lipgloss.Color("230")).
+		Padding(0, 1).
+		Render("Habit tracker")
+
+	label := lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: "#A49FA5", Dark: "#777777"}).
+		Render(fmt.Sprintf("%d left today", remaining))
+
+	return lipgloss.JoinHorizontal(lipgloss.Center, title, " ", label)
 }
 
 func habitsView(now time.Time, habits []Habit, nameWidth, visibleRows int, focused bool, selectedHabit, selectedDay int) string {
@@ -167,6 +181,17 @@ func habitStreak(now time.Time, habit Habit) int {
 		streak++
 	}
 	return streak
+}
+
+func remainingHabitsToday(now time.Time, habits []Habit) int {
+	day := weekdayIndex(now)
+	remaining := 0
+	for _, habit := range habits {
+		if !habit.checked[day] {
+			remaining++
+		}
+	}
+	return remaining
 }
 
 func weekdayIndex(t time.Time) int {

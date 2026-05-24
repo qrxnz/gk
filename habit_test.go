@@ -28,7 +28,7 @@ func TestStartOfWeekReturnsMonday(t *testing.T) {
 
 func TestHabitTrackerViewShowsCurrentWeek(t *testing.T) {
 	checked := [7]bool{true, false, false, false, true, true, false}
-	view := habitTrackerView(time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC), 120, 8, true, []Habit{NewHabitWithChecks("Read", checked)}, 0, 0)
+	view := habitTrackerView(time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC), 120, 8, true, []Habit{NewHabitWithChecks("Read", checked)}, 0, 0, 0)
 
 	for _, want := range []string{"Habit tracker", "Mon 18.05", "Tue 19.05", "Wed 20.05", "Thu 21.05", "Fri 22.05", "Sat 23.05", "Sun 24.05"} {
 		if !strings.Contains(view, want) {
@@ -40,6 +40,9 @@ func TestHabitTrackerViewShowsCurrentWeek(t *testing.T) {
 	}
 	if !strings.Contains(view, "0d") {
 		t.Fatalf("habitTrackerView() missing streak in %q", view)
+	}
+	if !strings.Contains(view, "0 left today") {
+		t.Fatalf("habitTrackerView() missing remaining label in %q", view)
 	}
 }
 

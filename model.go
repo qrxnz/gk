@@ -18,6 +18,7 @@ type Board struct {
 	habitIndex   int
 	habitDay     int
 	habitWeek    time.Time
+	habitToday   []Habit
 	habits       []Habit
 	cols         []column
 	storage      *Storage
@@ -68,6 +69,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case habitsLoadedMsg:
 		m.habits = msg.habits
+		m.habitToday = msg.today
 		if m.habitIndex >= len(m.habits) {
 			m.habitIndex = len(m.habits) - 1
 		}
@@ -176,7 +178,11 @@ func (m *Board) loadHabitChecks() tea.Cmd {
 		if err != nil {
 			return err
 		}
-		return habitsLoadedMsg{habits: habits}
+		today, err := m.storage.LoadHabits(startOfWeek(time.Now()))
+		if err != nil {
+			return err
+		}
+		return habitsLoadedMsg{habits: habits, today: today}
 	}
 }
 
@@ -207,6 +213,9 @@ func (m *Board) toggleHabitCheck() tea.Cmd {
 		return nil
 	}
 	m.habits[m.habitIndex].checked[m.habitDay] = !m.habits[m.habitIndex].checked[m.habitDay]
+	if sameDay(m.habitWeek.AddDate(0, 0, m.habitDay), time.Now()) {
+		m.habitToday = m.habits
+	}
 	return tea.Sequence(m.saveHabits(), m.loadHabitChecks())
 }
 
@@ -214,6 +223,7 @@ type habitsSavedMsg struct{}
 
 type habitsLoadedMsg struct {
 	habits []Habit
+	today  []Habit
 }
 
 // Changing to pointer receiver to get back to this model after adding a new task via the form... Otherwise I would need to pass this model along to the form and it becomes highly coupled to the other models.
@@ -238,7 +248,7 @@ func (m *Board) View() string {
 	if habitWeek.IsZero() {
 		habitWeek = startOfWeek(now)
 	}
-	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(habitWeek, lipgloss.Width(board), m.habitHeight(), m.habitFocused, m.habits, m.habitIndex, m.habitDay), m.help.View(keys))
+	return lipgloss.JoinVertical(lipgloss.Left, board, habitTrackerView(habitWeek, lipgloss.Width(board), m.habitHeight(), m.habitFocused, m.habits, m.habitIndex, m.habitDay, remainingHabitsToday(time.Now(), m.habitToday)), m.help.View(keys))
 }
 
 func (m *Board) habitHeight() int {
