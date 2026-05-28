@@ -10,20 +10,21 @@ import (
 )
 
 type Board struct {
-	help         help.Model
-	loaded       bool
-	height       int
-	focused      status
-	habitFocused bool
-	habitIndex   int
-	habitDay     int
-	habitWeek    time.Time
-	habitToday   []Habit
-	habits       []Habit
-	cols         []column
-	storage      *Storage
-	err          error
-	quitting     bool
+	help               help.Model
+	loaded             bool
+	height             int
+	focused            status
+	habitFocused       bool
+	habitIndex         int
+	habitDay           int
+	habitWeek          time.Time
+	habitToday         []Habit
+	habits             []Habit
+	confirmDeleteHabit bool
+	cols               []column
+	storage            *Storage
+	err                error
+	quitting           bool
 }
 
 func NewBoard(storage *Storage) *Board {
@@ -80,6 +81,20 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case error:
 		m.err = msg
 	case tea.KeyMsg:
+		if m.confirmDeleteHabit {
+			switch {
+			case key.Matches(msg, keys.Quit):
+				m.quitting = true
+				return m, tea.Quit
+			case key.Matches(msg, keys.Back), key.Matches(msg, keys.No):
+				m.confirmDeleteHabit = false
+				return m, nil
+			case key.Matches(msg, keys.Enter), key.Matches(msg, keys.Yes):
+				m.confirmDeleteHabit = false
+				return m, m.deleteHabit()
+			}
+			return m, nil
+		}
 		switch {
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
@@ -90,7 +105,10 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, keys.Delete):
 			if m.habitFocused {
-				return m, m.deleteHabit()
+				if len(m.habits) > 0 {
+					m.confirmDeleteHabit = true
+				}
+				return m, nil
 			}
 		case key.Matches(msg, keys.Tab):
 			if !m.habitFocused {
@@ -252,6 +270,9 @@ func (m *Board) View() string {
 	if m.err != nil {
 		return m.err.Error()
 	}
+	if m.confirmDeleteHabit {
+		return m.deleteHabitConfirmationView()
+	}
 	if !m.loaded {
 		return "loading..."
 	}
@@ -278,4 +299,23 @@ func (m *Board) habitHeight() int {
 		return 8
 	}
 	return height
+}
+
+func (m *Board) deleteHabitConfirmationView() string {
+	name := "habit"
+	if len(m.habits) > 0 {
+		name = m.habits[m.habitIndex].name
+	}
+	content := lipgloss.JoinVertical(
+		lipgloss.Center,
+		lipgloss.NewStyle().Bold(true).Render("Delete habit?"),
+		"Are you sure you want to delete \""+name+"\"?",
+		"y/enter confirm  n/esc cancel",
+	)
+	modal := lipgloss.NewStyle().
+		Padding(1, 4).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(focusColor)).
+		Render(content)
+	return lipgloss.Place(m.help.Width+margin, m.height, lipgloss.Center, lipgloss.Center, modal)
 }
