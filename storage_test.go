@@ -149,6 +149,29 @@ func TestStorageHabitStreakUsesStableHabitIDAcrossWeeks(t *testing.T) {
 	}
 }
 
+func TestStorageSaveHabitsDeletesRemovedHabits(t *testing.T) {
+	storage := newTestStorage(t)
+	week := time.Date(2026, 5, 18, 12, 0, 0, 0, time.UTC)
+
+	if err := storage.SaveHabits([]Habit{NewHabit("Read"), NewHabit("Run")}, week); err != nil {
+		t.Fatalf("SaveHabits() error = %v", err)
+	}
+	habits, err := storage.LoadHabits(week)
+	if err != nil {
+		t.Fatalf("LoadHabits() error = %v", err)
+	}
+	if err := storage.SaveHabits([]Habit{habits[1]}, week); err != nil {
+		t.Fatalf("SaveHabits(delete) error = %v", err)
+	}
+	habits, err = storage.LoadHabits(week)
+	if err != nil {
+		t.Fatalf("LoadHabits() error = %v", err)
+	}
+	if len(habits) != 1 || habits[0].name != "Run" {
+		t.Fatalf("habits = %#v, want only Run", habits)
+	}
+}
+
 func assertLoadedTask(t *testing.T, item interface{}, stat status, title, description string) {
 	t.Helper()
 

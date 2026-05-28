@@ -250,6 +250,15 @@ func (s *Storage) SaveHabits(habits []Habit, weekStart time.Time) error {
 	if _, err := tx.Exec(`DELETE FROM habit_checks WHERE week_start = ?`, weekKey(weekStart)); err != nil {
 		return err
 	}
+	ids := make([]int64, 0, len(habits))
+	for _, habit := range habits {
+		if habit.id != 0 {
+			ids = append(ids, habit.id)
+		}
+	}
+	if err := deleteRemovedHabits(tx, ids); err != nil {
+		return err
+	}
 
 	habitStmt, err := tx.Prepare(`
 		INSERT INTO habits (id, name, position)
@@ -310,4 +319,28 @@ func isDuplicateColumnError(err error) bool {
 
 func weekKey(t time.Time) string {
 	return startOfWeek(t).Format("2006-01-02")
+}
+
+func deleteRemovedHabits(tx *sql.Tx, ids []int64) error {
+	if len(ids) == 0 {
+		if _, err := tx.Exec(`DELETE FROM habit_checks`); err != nil {
+			return err
+		}
+		_, err := tx.Exec(`DELETE FROM habits`)
+		return err
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+	query := fmt.Sprintf(`DELETE FROM habit_checks WHERE habit_id NOT IN (%s)`, strings.Join(placeholders, ","))
+	if _, err := tx.Exec(query, args...); err != nil {
+		return err
+	}
+	query = fmt.Sprintf(`DELETE FROM habits WHERE id NOT IN (%s)`, strings.Join(placeholders, ","))
+	_, err := tx.Exec(query, args...)
+	return err
 }

@@ -88,6 +88,10 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.habitFocused {
 				return newHabitForm().Update(nil)
 			}
+		case key.Matches(msg, keys.Delete):
+			if m.habitFocused {
+				return m, m.deleteHabit()
+			}
 		case key.Matches(msg, keys.Tab):
 			if !m.habitFocused {
 				m.cols[m.focused].Blur()
@@ -215,6 +219,20 @@ func (m *Board) toggleHabitCheck() tea.Cmd {
 	m.habits[m.habitIndex].checked[m.habitDay] = !m.habits[m.habitIndex].checked[m.habitDay]
 	if sameDay(m.habitWeek.AddDate(0, 0, m.habitDay), time.Now()) {
 		m.habitToday = m.habits
+	}
+	return tea.Sequence(m.saveHabits(), m.loadHabitChecks())
+}
+
+func (m *Board) deleteHabit() tea.Cmd {
+	if len(m.habits) == 0 {
+		return nil
+	}
+	m.habits = append(m.habits[:m.habitIndex], m.habits[m.habitIndex+1:]...)
+	if m.habitIndex >= len(m.habits) {
+		m.habitIndex = len(m.habits) - 1
+	}
+	if m.habitIndex < 0 {
+		m.habitIndex = 0
 	}
 	return tea.Sequence(m.saveHabits(), m.loadHabitChecks())
 }
