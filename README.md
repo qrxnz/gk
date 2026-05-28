@@ -1,7 +1,7 @@
 # gk
 
-A terminal-based task and habit manager written in Go. The app runs as a TUI
-built with Bubble Tea and stores data locally in a libSQL/SQLite database.
+A terminal-based task and habit manager written in **Go**. The app runs as a TUI
+built with Bubble Tea and stores data locally in a **libSQL** database.
 
 ## Features
 
@@ -41,20 +41,20 @@ task build
 
 ## Keybindings
 
-| Key | Action |
-| --- | --- |
-| `n` | create a task or habit in the active section |
-| `e` | edit the selected task |
-| `d` | delete the selected task |
-| `enter` | move a task to the next column or toggle a habit check |
-| `tab` | switch between the task board and habit tracker |
-| `up` / `k` | move up |
-| `down` / `j` | move down |
-| `left` / `h` | previous column or previous day in the habit tracker |
-| `right` / `l` | next column or next day in the habit tracker |
-| `esc` | return from a form |
-| `?` | show help |
-| `q` / `ctrl+c` | quit |
+| Key            | Action                                                 |
+| -------------- | ------------------------------------------------------ |
+| `n`            | create a task or habit in the active section           |
+| `e`            | edit the selected task                                 |
+| `d`            | delete the selected task                               |
+| `enter`        | move a task to the next column or toggle a habit check |
+| `tab`          | switch between the task board and habit tracker        |
+| `up` / `k`     | move up                                                |
+| `down` / `j`   | move down                                              |
+| `left` / `h`   | previous column or previous day in the habit tracker   |
+| `right` / `l`  | next column or next day in the habit tracker           |
+| `esc`          | return from a form                                     |
+| `?`            | show help                                              |
+| `q` / `ctrl+c` | quit                                                   |
 
 ## Data
 
