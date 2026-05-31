@@ -36,6 +36,7 @@ func newColumn(status status) column {
 	}
 	defaultList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	defaultList.SetShowHelp(false)
+	defaultList.SetShowStatusBar(false)
 	return column{focus: focus, status: status, list: defaultList}
 }
 
