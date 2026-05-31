@@ -82,16 +82,25 @@ func (f Form) View() string {
 }
 
 type HabitForm struct {
-	help help.Model
-	name textinput.Model
+	help  help.Model
+	name  textinput.Model
+	index int
 }
 
 func newHabitForm() *HabitForm {
+	return NewHabitForm("habit name", APPEND)
+}
+
+func NewHabitForm(name string, index int) *HabitForm {
 	form := HabitForm{
-		help: help.New(),
-		name: textinput.New(),
+		help:  help.New(),
+		name:  textinput.New(),
+		index: index,
 	}
-	form.name.Placeholder = "habit name"
+	form.name.Placeholder = name
+	if index != APPEND {
+		form.name.SetValue(name)
+	}
 	form.name.Focus()
 	return &form
 }

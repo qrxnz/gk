@@ -59,8 +59,12 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, tea.Sequence(m.cols[m.focused].Set(msg.index, msg.CreateTask()), m.save())
 	case HabitForm:
-		m.habits = append(m.habits, msg.CreateHabit())
-		m.habitIndex = len(m.habits) - 1
+		if msg.index == APPEND {
+			m.habits = append(m.habits, msg.CreateHabit())
+			m.habitIndex = len(m.habits) - 1
+		} else if msg.index >= 0 && msg.index < len(m.habits) {
+			m.habits[msg.index].name = msg.CreateHabit().name
+		}
 		return m, tea.Sequence(m.saveHabits(), m.loadHabitChecks())
 	case moveMsg:
 		return m, tea.Sequence(m.cols[m.focused.getNext()].Set(APPEND, msg.Task), m.save())
@@ -102,6 +106,13 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.New):
 			if m.habitFocused {
 				return newHabitForm().Update(nil)
+			}
+		case key.Matches(msg, keys.Edit):
+			if m.habitFocused {
+				if len(m.habits) > 0 {
+					return NewHabitForm(m.habits[m.habitIndex].name, m.habitIndex).Update(nil)
+				}
+				return m, nil
 			}
 		case key.Matches(msg, keys.Delete):
 			if m.habitFocused {
