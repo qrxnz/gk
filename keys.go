@@ -18,20 +18,21 @@ func (k keyMap) FullHelp() [][]key.Binding {
 }
 
 type keyMap struct {
-	New    key.Binding
-	Edit   key.Binding
-	Delete key.Binding
-	Up     key.Binding
-	Down   key.Binding
-	Right  key.Binding
-	Left   key.Binding
-	Enter  key.Binding
-	Tab    key.Binding
-	Help   key.Binding
-	Quit   key.Binding
-	Back   key.Binding
-	Yes    key.Binding
-	No     key.Binding
+	New       key.Binding
+	Edit      key.Binding
+	Delete    key.Binding
+	Up        key.Binding
+	Down      key.Binding
+	Right     key.Binding
+	Left      key.Binding
+	Enter     key.Binding
+	Tab       key.Binding
+	Help      key.Binding
+	Quit      key.Binding
+	ForceQuit key.Binding
+	Back      key.Binding
+	Yes       key.Binding
+	No        key.Binding
 }
 
 var keys = keyMap{
@@ -78,6 +79,10 @@ var keys = keyMap{
 	Quit: key.NewBinding(
 		key.WithKeys("q", "ctrl+c"),
 		key.WithHelp("q/ctrl+c", "quit"),
+	),
+	ForceQuit: key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
 	),
 	Back: key.NewBinding(
 		key.WithKeys("esc"),

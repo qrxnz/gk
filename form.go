@@ -49,7 +49,7 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.col.list.Index()
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, keys.Quit):
+		case key.Matches(msg, keys.ForceQuit):
 			return f, tea.Quit
 
 		case key.Matches(msg, keys.Back):
@@ -118,7 +118,7 @@ func (f HabitForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, keys.Quit):
+		case key.Matches(msg, keys.ForceQuit):
 			return f, tea.Quit
 		case key.Matches(msg, keys.Back):
 			return board.Update(nil)
