@@ -36,6 +36,7 @@
     enable = true;
     config = {
       programs = {
+        gofmt.enable = true;
         prettier.enable = true;
         alejandra.enable = true;
         taplo.enable = true;
