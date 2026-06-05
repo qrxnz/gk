@@ -21,6 +21,21 @@
   } @ inputs: let
     forEachSystem = nixpkgs.lib.genAttrs (import systems);
   in {
+    packages =
+      forEachSystem
+      (system: let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in {
+        gk = pkgs.buildGoModule rec {
+          pname = "gk";
+          version = "git";
+          src = self;
+          vendorHash = "sha256-pQHSInQxbgc+zEvFqbpMj6XltRLAzKZ/6x5/MydKcJY=";
+          proxyVendor = true;
+        };
+        default = self.packages.${system}.gk;
+      });
+
     devShells =
       forEachSystem
       (system: let

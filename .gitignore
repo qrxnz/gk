@@ -3,4 +3,6 @@ gk
 debug.log
 .direnv/
 .devenv/
+result
+.result/
 .pre-commit-config.yaml
