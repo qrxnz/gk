@@ -2,3 +2,4 @@ gk
 .DS_Store
 debug.log
 .direnv/
+.devenv/
