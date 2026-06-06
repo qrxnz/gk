@@ -11,7 +11,7 @@
     <a href="https://github.com/qrxnz/gk/actions/workflows/go.yml">
         <img src="https://img.shields.io/github/actions/workflow/status/qrxnz/gk/go.yml?color=a6e3a1&labelColor=303446&style=for-the-badge&label=Go">
     </a>
-    <a href="https://github.com/qrxnz/gk/blob/main/.github/LICENCE">
+    <a href="https://github.com/qrxnz/gk/blob/main/LICENSE">
         <img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&logoColor=ca9ee6&colorA=313244&colorB=cba6f7"/>
     </a>
     <br>
@@ -20,7 +20,7 @@
 
 > A terminal-based task and habit manager written in Go
 
-**gk** is a lightweight, fast, and keyboard-driven TUI designed for managing daily tasks and habits, built in **Go** using the **Bubble Tea** framework and a local **libSQL** database. Built with developers and terminal enthusiasts in mind, it allows you to stay organized without ever leaving the command line or lifting your hands off the keyboard.
+**gk** is a lightweight, fast, and keyboard-driven TUI designed for managing daily tasks and habits, built in **Go** using the **Bubble Tea** framework and a local **libSQL** database. Built with developers and terminal enthusiasts in mind, it allows you to stay organized without ever leaving the command line or lifting your hands off the keyboard...
 
 ## 🧰 Features
 
