@@ -18,8 +18,9 @@
     </div>
 </h3>
 
-A terminal-based task and habit manager written in **Go**. The app runs as a TUI
-built with Bubble Tea and stores data locally in a **libSQL** database.
+> A terminal-based task and habit manager written in Go
+
+**gk** is a lightweight, fast, and keyboard-driven TUI designed for managing daily tasks and habits, built in **Go** using the **Bubble Tea** framework and a local **libSQL** database. Built with developers and terminal enthusiasts in mind, it allows you to stay organized without ever leaving the command line or lifting your hands off the keyboard.
 
 ## 🧰 Features
 
