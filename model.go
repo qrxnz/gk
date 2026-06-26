@@ -21,6 +21,7 @@ type Board struct {
 	habitToday         []Habit
 	habits             []Habit
 	confirmDeleteHabit bool
+	confirmDeleteTask  bool
 	cols               []column
 	storage            *Storage
 	err                error
@@ -99,6 +100,20 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
+		if m.confirmDeleteTask {
+			switch {
+			case key.Matches(msg, keys.Quit):
+				m.quitting = true
+				return m, tea.Quit
+			case key.Matches(msg, keys.Back), key.Matches(msg, keys.No):
+				m.confirmDeleteTask = false
+				return m, nil
+			case key.Matches(msg, keys.Enter), key.Matches(msg, keys.Yes):
+				m.confirmDeleteTask = false
+				return m, m.deleteTask()
+			}
+			return m, nil
+		}
 		switch {
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
@@ -121,6 +136,10 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, nil
 			}
+			if len(m.cols[m.focused].list.VisibleItems()) > 0 {
+				m.confirmDeleteTask = true
+			}
+			return m, nil
 		case key.Matches(msg, keys.Tab):
 			if !m.habitFocused {
 				m.cols[m.focused].Blur()
@@ -266,6 +285,10 @@ func (m *Board) deleteHabit() tea.Cmd {
 	return tea.Sequence(m.saveHabits(), m.loadHabitChecks())
 }
 
+func (m *Board) deleteTask() tea.Cmd {
+	return tea.Sequence(m.cols[m.focused].DeleteCurrent(), func() tea.Msg { return saveMsg{} })
+}
+
 type habitsSavedMsg struct{}
 
 type habitsLoadedMsg struct {
@@ -283,6 +306,9 @@ func (m *Board) View() string {
 	}
 	if m.confirmDeleteHabit {
 		return m.deleteHabitConfirmationView()
+	}
+	if m.confirmDeleteTask {
+		return m.deleteTaskConfirmationView()
 	}
 	if !m.loaded {
 		return "loading..."
@@ -320,6 +346,25 @@ func (m *Board) deleteHabitConfirmationView() string {
 	content := lipgloss.JoinVertical(
 		lipgloss.Center,
 		lipgloss.NewStyle().Bold(true).Render("Delete habit?"),
+		"Are you sure you want to delete \""+name+"\"?",
+		"y/enter confirm  n/esc cancel",
+	)
+	modal := lipgloss.NewStyle().
+		Padding(1, 4).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(focusColor)).
+		Render(content)
+	return lipgloss.Place(m.help.Width+margin, m.height, lipgloss.Center, lipgloss.Center, modal)
+}
+
+func (m *Board) deleteTaskConfirmationView() string {
+	name := "task"
+	if task, ok := m.cols[m.focused].list.SelectedItem().(Task); ok {
+		name = task.title
+	}
+	content := lipgloss.JoinVertical(
+		lipgloss.Center,
+		lipgloss.NewStyle().Bold(true).Render("Delete task?"),
 		"Are you sure you want to delete \""+name+"\"?",
 		"y/enter confirm  n/esc cancel",
 	)

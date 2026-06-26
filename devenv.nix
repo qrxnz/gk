@@ -9,7 +9,7 @@
     pkgs.delve
     pkgs.gopls
     pkgs.nixd
-    pkgs.nodePackages.prettier
+    pkgs.prettier
     pkgs.alejandra
     pkgs.taplo
     pkgs.dockfmt
