@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/qrxnz/gk/compare/v1.0.0...v1.1.0) (2026-06-26)
+
+
+### Features
+
+* confirm task deletion before removing ([ed4bf03](https://github.com/qrxnz/gk/commit/ed4bf035f9434f9331e1e720a0639013cae3516d))
+
 ## 1.0.0 (2026-06-06)
 
 
