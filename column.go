@@ -67,8 +67,6 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			f.index = APPEND
 			f.col = c
 			return f.Update(nil)
-		case key.Matches(msg, keys.Delete):
-			return c, tea.Sequence(c.DeleteCurrent(), func() tea.Msg { return saveMsg{} })
 		case key.Matches(msg, keys.Enter):
 			return c, c.MoveToNext()
 		}
