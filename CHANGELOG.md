@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/qrxnz/gk/compare/v1.1.0...v1.2.0) (2026-07-11)
+
+
+### Features
+
+* add workflow for weekly flake.lock updates ([d556f0e](https://github.com/qrxnz/gk/commit/d556f0ec11703174484b13702ef04c9a9b9282b3))
+
 ## [1.1.0](https://github.com/qrxnz/gk/compare/v1.0.0...v1.1.0) (2026-06-26)
 
 
